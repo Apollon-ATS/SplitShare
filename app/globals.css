@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 150 40% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 40% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 40% 10%;
+
+    --primary: 150 45% 11%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 150 45% 11%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 150 20% 40%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 150 30% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 150 40% 40%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 100%;
+    --foreground: 150 45% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 45% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 45% 11%;
+
+    --primary: 150 45% 11%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 150 45% 11%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 150 20% 40%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 150 30% 15%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 150 30% 83%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.logo-circle {
+  border-radius: 50%;
+  background-color: white;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(10, 42, 27, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo-circle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(10, 42, 27, 0.3);
+}
+
+.ats-accent {
+  color: #0a2a1b;
+}
+
+.ats-bg {
+  background-color: #0a2a1b;
+}
+
+.ats-border {
+  border-color: #0a2a1b;
+}
+
+.geometric-bg {
+  background-color: rgba(10, 42, 27, 0.03);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='%230A2A1B' fill-opacity='0.05'%3E%3Cpath d='M50 25C37.5 25 25 37.5 25 50s12.5 25 25 25 25-12.5 25-25-12.5-25-25-25zm0 40c-8.284 0-15-6.716-15-15 0-8.284 6.716-15 15-15 8.284 0 15 6.716 15 15 0 8.284-6.716 15-15 15z'/%3E%3Cpath d='M50 35v5M50 60v5M35 50h5M60 50h5M50 45v10M45 50h10'/%3E%3Cpath d='M15 15l5 5M80 15l-5 5M15 80l5-5M80 80l-5-5' stroke='%230A2A1B' stroke-opacity='0.05' stroke-width='2'/%3E%3Cpath d='M20 40c-2.5-5-2.5-10 0-15M80 60c2.5 5 2.5 10 0 15' stroke='%230A2A1B' stroke-opacity='0.05' stroke-width='2'/%3E%3Cpath d='M30 20c-5 2.5-10 2.5-15 0M70 80c5-2.5 10-2.5 15 0' stroke='%230A2A1B' stroke-opacity='0.05' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 100px 100px;
+}
+
+@keyframes notification-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.notification-pulse {
+  animation: notification-pulse 0.5s ease-in-out;
+}

@@ -1,0 +1,30 @@
+{
+  "name": "multi-currency-transfer-system",
+  "version": "1.0.0",
+  "description": "Système de transfert d'argent multi-devises sur Ethereum",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "deploy": "npx hardhat run scripts/deploy.js",
+    "deploy:mainnet": "npx hardhat run scripts/deploy.js --network mainnet",
+    "deploy:testnet": "npx hardhat run scripts/deploy.js --network testnet"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "defi",
+    "currency-conversion",
+    "payment-system"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@openzeppelin/contracts": "^4.8.0",
+    "hardhat": "^2.12.0"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^0.6.1"
+  }
+} 
