@@ -1,6 +1,5 @@
 # SplitShare 💸
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Apollon-ATS/SplitShare/pulls)
 
