@@ -4,7 +4,8 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Apollon-ATS/SplitShare/pulls)
 
 SplitShare is a modern expense splitting application that helps groups and friends manage shared expenses effortlessly. Never worry about who paid for what again!
-
+<br><br>
+[split-share-eight.vercel.app](https://split-share-eight.vercel.app/)
 ## Features ✨
 
 - 👥 Create groups for shared expenses
