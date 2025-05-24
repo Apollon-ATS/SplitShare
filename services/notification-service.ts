@@ -26,14 +26,23 @@ export const NotificationService = {
         return []
       }
 
-      return data.map((item: any) => ({
+      return data.map((item: any) => {
+        // On force senderWalletAddress à null si absent
+        let content = item.content
+        if (content && typeof content === 'object' && !Array.isArray(content)) {
+          if (!('senderWalletAddress' in content) || content.senderWalletAddress === undefined) {
+            content = { ...content, senderWalletAddress: null }
+          }
+        }
+        return {
         id: item.id,
         userId: item.user_id,
         type: item.type,
-        content: item.content,
+          content: content,
         read: item.read,
         createdAt: item.created_at,
-      }))
+        }
+      })
     } catch (error) {
       console.error("Error retrieving notifications:", error)
       return []
@@ -122,7 +131,7 @@ export const NotificationService = {
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
-        (payload) => {
+        (payload: any) => {
           console.log("New notification received:", payload)
 
           // Transformer la notification

@@ -348,7 +348,7 @@ export default function FriendsPage() {
                       </Avatar>
                       <div>
                         <CardTitle>{friend.username || "Utilisateur"}</CardTitle>
-                        <CardDescription>{friend.email || friend.walletAddress}</CardDescription>
+                        <CardDescription>{friend.email || friend.walletAddress || <span className="italic text-gray-400">-</span>}</CardDescription>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -356,8 +356,9 @@ export default function FriendsPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Wallet Address:</span>
                           <span className="text-sm font-medium">
-                            {friend.walletAddress.substring(0, 6)}...
-                            {friend.walletAddress.substring(friend.walletAddress.length - 4)}
+                            {friend.walletAddress
+                              ? `${friend.walletAddress.substring(0, 6)}...${friend.walletAddress.substring(friend.walletAddress.length - 4)}`
+                              : <span className="italic text-gray-400">Not linked</span>}
                           </span>
                         </div>
                       </div>

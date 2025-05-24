@@ -73,11 +73,11 @@ export default function DashboardPage() {
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
   useEffect(() => {
-    if (!connected) {
+    if (!user) {
       toast.error("Please log in to access the dashboard")
       router.push("/login")
     }
-  }, [connected, router])
+  }, [user, router])
 
   // Load user subscriptions from database
   const loadUserSubscriptions = async () => {
@@ -356,10 +356,6 @@ export default function DashboardPage() {
       console.error("Error accepting invitation:", error)
       toast.error("Failed to accept invitation")
     }
-  }
-
-  if (!connected) {
-    return null // Ne rien afficher pendant la redirection
   }
 
   return (

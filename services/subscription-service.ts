@@ -89,7 +89,9 @@ export const SubscriptionService = {
 
       // Transform data
       const owned = ownedSubscriptions.map(transformSubscription)
-      const shared = memberSubscriptions.map((item: any) => transformSubscription(item.subscriptions))
+      const shared = memberSubscriptions
+        .filter((item: any) => item.subscriptions)
+        .map((item: any) => transformSubscription(item.subscriptions))
 
       // Merge and deduplicate subscriptions
       const allSubscriptions = [...owned]
@@ -115,13 +117,51 @@ export const SubscriptionService = {
   async getSubscriptionMembers(subscriptionId: string): Promise<SubscriptionMember[]> {
     try {
       const supabase = createClientComponentClient()
+      const user = await supabase.auth.getUser()
+      const userId = user?.data?.user?.id
 
+      if (!userId) {
+        console.error("No user id found in session")
+        return []
+      }
+
+      // 1. Récupère les groupes où l'utilisateur courant est membre
+      const { data: myMemberships, error: membershipsError } = await supabase
+        .from("subscription_members")
+        .select("subscription_id")
+        .eq("user_id", userId)
+
+      if (membershipsError) {
+        console.error("Error loading memberships:", membershipsError)
+        return []
+      }
+
+      const myGroupIds = myMemberships ? myMemberships.map((m: any) => m.subscription_id) : []
+
+      // 2. Récupère la subscription pour vérifier si l'utilisateur est owner
+      const { data: subscription, error: subError } = await supabase
+        .from("subscriptions")
+        .select("owner_id")
+        .eq("id", subscriptionId)
+        .maybeSingle()
+
+      if (subError) {
+        console.error("Error loading subscription:", subError)
+        return []
+      }
+
+      const isMember = myGroupIds.includes(subscriptionId)
+      const isOwner = subscription && subscription.owner_id === userId
+
+      if (!isMember && !isOwner) {
+        // L'utilisateur n'a pas le droit de voir les membres
+        return []
+      }
+
+      // 3. Récupère les membres du groupe
       const { data, error } = await supabase
         .from("subscription_members")
-        .select(`
-          *,
-          user:users (id, username, email, avatar_url)
-        `)
+        .select(`*, user:users (id, username, email, avatar_url)`)
         .eq("subscription_id", subscriptionId)
 
       if (error) {
@@ -171,10 +211,15 @@ export const SubscriptionService = {
           },
         ])
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error("Error creating subscription:", error)
+        return null
+      }
+
+      if (!data) {
+        console.error('No data found for this query')
         return null
       }
 
@@ -257,10 +302,15 @@ export const SubscriptionService = {
         .from("subscriptions")
         .select("cost")
         .eq("id", subscriptionId)
-        .single()
+        .maybeSingle()
 
       if (subError) {
         console.error("Error retrieving subscription:", subError)
+        return false
+      }
+
+      if (!subscription) {
+        console.error('No data found for this query')
         return false
       }
 
@@ -311,10 +361,15 @@ export const SubscriptionService = {
         .from("subscriptions")
         .select("name, cost")
         .eq("id", subscriptionId)
-        .single()
+        .maybeSingle()
 
       if (subError) {
         console.error("Error retrieving subscription:", subError)
+        return false
+      }
+
+      if (!subscription) {
+        console.error('No data found for this query')
         return false
       }
 
@@ -359,10 +414,15 @@ export const SubscriptionService = {
         .select("content")
         .eq("id", notificationId)
         .eq("user_id", userId)
-        .single()
+        .maybeSingle()
 
       if (notifError) {
         console.error("Error retrieving invitation:", notifError)
+        return false
+      }
+
+      if (!notification) {
+        console.error('No data found for this query')
         return false
       }
 
@@ -375,10 +435,15 @@ export const SubscriptionService = {
         .from("subscriptions")
         .select("cost")
         .eq("id", subscriptionId)
-        .single()
+        .maybeSingle()
 
       if (subError) {
         console.error("Error retrieving subscription:", subError)
+        return false
+      }
+
+      if (!subscription) {
+        console.error('No data found for this query')
         return false
       }
 
@@ -474,10 +539,15 @@ export const SubscriptionService = {
         .from('subscriptions')
         .select('name, cost')
         .eq('id', subscriptionId)
-        .single()
+        .maybeSingle()
 
       if (subError) {
         console.error('Error getting subscription:', subError)
+        return false
+      }
+
+      if (!subscription) {
+        console.error('No data found for this query')
         return false
       }
 
@@ -559,11 +629,16 @@ export const SubscriptionService = {
         .from('subscriptions')
         .select('name, cost, owner_id')
         .eq('id', subscriptionId)
-        .single()
+        .maybeSingle()
 
       if (subError) {
         console.error('Error getting subscription:', subError)
         throw subError
+      }
+
+      if (!subscription) {
+        console.error('No data found for this query')
+        throw new Error('No data found for this query')
       }
 
       // Si c'est le propriétaire qui quitte, on doit d'abord transférer la propriété
@@ -601,11 +676,16 @@ export const SubscriptionService = {
         .from('users')
         .select('username')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
       if (memberError) {
         console.error('Error getting member details:', memberError)
         throw memberError
+      }
+
+      if (!leavingMember) {
+        console.error('No data found for this query')
+        throw new Error('No data found for this query')
       }
 
       // Get all current members to notify them
@@ -725,11 +805,16 @@ export const SubscriptionService = {
         .from('subscriptions')
         .select('name, cost, owner_id')
         .eq('id', subscriptionId)
-        .single()
+        .maybeSingle()
 
       if (subError) {
         console.error('Error getting subscription:', subError)
         throw subError
+      }
+
+      if (!subscription) {
+        console.error('No data found for this query')
+        throw new Error('No data found for this query')
       }
 
       if (subscription.owner_id !== ownerId) {
@@ -741,11 +826,16 @@ export const SubscriptionService = {
         .from('users')
         .select('username')
         .eq('id', memberId)
-        .single()
+        .maybeSingle()
 
       if (memberError) {
         console.error('Error getting member details:', memberError)
         throw memberError
+      }
+
+      if (!removedMember) {
+        console.error('No data found for this query')
+        throw new Error('No data found for this query')
       }
 
       // Get all current members to notify them
@@ -886,7 +976,7 @@ export const SubscriptionService = {
                 .select('subscription_id')
                 .eq('subscription_id', payload.old.subscription_id)
                 .eq('user_id', userId)
-                .single()
+                .maybeSingle()
 
               if (wasMember) {
                 // Get the user who left
@@ -894,7 +984,7 @@ export const SubscriptionService = {
                   .from('users')
                   .select('username')
                   .eq('id', payload.old.user_id)
-                  .single()
+                  .maybeSingle()
 
                 callback({
                   id: payload.old.subscription_id,
@@ -912,14 +1002,14 @@ export const SubscriptionService = {
                 .select('*')
                 .eq('subscription_id', payload.new.subscription_id)
                 .eq('user_id', userId)
-                .single()
+                .maybeSingle()
 
               if (memberCheck) {
                 const { data: subscription } = await supabase
                   .from('subscriptions')
                   .select('*')
                   .eq('id', payload.new.subscription_id)
-                  .single()
+                  .maybeSingle()
 
                 if (subscription) {
                   const transformedSubscription = transformSubscription(subscription)
@@ -954,7 +1044,7 @@ export const SubscriptionService = {
                 .select('subscription_id')
                 .eq('subscription_id', payload.old.id)
                 .eq('user_id', userId)
-                .single()
+                .maybeSingle()
 
               if (wasMember) {
                 callback({
@@ -971,14 +1061,14 @@ export const SubscriptionService = {
                 .select('*')
                 .eq('subscription_id', payload.new.id)
                 .eq('user_id', userId)
-                .single()
+                .maybeSingle()
 
               if (memberCheck) {
                 const { data: subscription } = await supabase
                   .from('subscriptions')
                   .select('*')
                   .eq('id', payload.new.id)
-                  .single()
+                  .maybeSingle()
 
                 if (subscription) {
                   const transformedSubscription = transformSubscription(subscription)

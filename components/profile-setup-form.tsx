@@ -11,15 +11,19 @@ import { Loader2 } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { WalletConnectButton } from "@/components/wallet-connect-button"
+import { useWallet } from "@/context/wallet-context"
 
 export function ProfileSetupForm() {
   const { user, updateUserProfile } = useAuth()
+  const { connected, publicKey } = useWallet()
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     username: user?.username || "",
     email: user?.email || "",
   })
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -33,13 +37,49 @@ export function ProfileSetupForm() {
       toast.error("Username is required")
       return
     }
-
+    if (!connected || !publicKey) {
+      toast.error("You must connect your Phantom wallet to complete setup.")
+      return
+    }
+    if (!user) {
+      toast.error("User not found. Please log in again.")
+      return
+    }
     setIsSubmitting(true)
-
     try {
-      const success = await updateUserProfile(formData.username, formData.email)
+      const supabase = (await import("@/lib/supabase")).createClientComponentClient();
+      const { data: existing, error: supabaseError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("wallet_address", publicKey)
+        .maybeSingle();
 
-      if (success) {
+      if (existing && existing.id !== user.id) {
+        setError("This wallet is already linked to another account.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const success = await updateUserProfile(formData.username, formData.email)
+      let walletOk = true
+      if (user?.walletAddress !== publicKey) {
+        try {
+          const { error: walletError } = await supabase
+            .from("users")
+            .update({ wallet_address: publicKey })
+            .eq("id", user.id);
+          if (walletError) {
+            toast.error("Error updating wallet address")
+            setIsSubmitting(false)
+            return
+          }
+        } catch (err) {
+          toast.error("Error updating wallet address")
+          setIsSubmitting(false)
+          return
+        }
+      }
+      if (success || walletOk) {
         toast.success("Profile set up successfully")
         router.push("/dashboard")
       } else {
@@ -88,6 +128,19 @@ export function ProfileSetupForm() {
                 Your email allows us to send you important notifications regarding your shared subscriptions
               </p>
             </div>
+            <div className="space-y-2">
+              <Label>Phantom Wallet</Label>
+              <div className="flex items-center gap-2">
+                <Input value={connected && publicKey ? publicKey : "Not connected"} readOnly className="flex-1" />
+                <WalletConnectButton />
+              </div>
+              <p className="text-xs text-gray-500">You must connect your Phantom wallet to complete your profile setup.</p>
+            </div>
+            {error && (
+              <div className="text-red-500 text-sm">
+                {error}
+              </div>
+            )}
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full bg-primary text-white hover:bg-primary/90" disabled={isSubmitting}>
